@@ -1,5 +1,5 @@
 DEVTOOLS ?= /Local/Developer
-prefix=?/usr/local
+prefix ?= /usr/local
 
 ARCHS = x86_64 i486 ppc
 DEBARCHS = darwin-amd64 darwin-i386 darwin-powerpc
