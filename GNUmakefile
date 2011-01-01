@@ -5,7 +5,7 @@ ARCHS = x86_64 i486 ppc
 DEBARCHS = darwin-amd64 darwin-i386 darwin-powerpc
 
 DPKG_VERSION = 1.14.30
-DPKG_REVISION = 2
+DPKG_REVISION = 3
 DPKG_BINARY = dpkg dpkg-deb dpkg-query dpkg-split dpkg-trigger dselect
 DPKG_DEB = dpkg_$(DPKG_VERSION)-$(DPKG_REVISION)_darwin-universal.deb
 
@@ -45,6 +45,8 @@ endef
 
 export dpkg_conffiles
 
+dpkg/configure: dpkg/configure.ac
+	cd dpkg && autoreconf --install --force -I m4
 
 $(DPKG_DEB): dpkg-stage-universal$(prefix)/bin/dpkg
 	echo "2.0" > debian-binary
@@ -73,13 +75,13 @@ dpkg-clean:
 
 dpkg-archs: $(foreach arch,$(ARCHS),dpkg-stage-$(arch)$(prefix)/bin/dpkg)
 
-dpkg-stage-x86_64$(prefix)/bin/dpkg:
+dpkg-stage-x86_64$(prefix)/bin/dpkg: dpkg/configure
 	./stage-dpkg $(DEVTOOLS) x86_64 $(prefix)
 
-dpkg-stage-i486$(prefix)/bin/dpkg:
+dpkg-stage-i486$(prefix)/bin/dpkg: dpkg/configure
 	./stage-dpkg $(DEVTOOLS) i486 $(prefix)
 
-dpkg-stage-ppc$(prefix)/bin/dpkg:
+dpkg-stage-ppc$(prefix)/bin/dpkg: dpkg/configure
 	./stage-dpkg $(DEVTOOLS) ppc $(prefix)
 
 preinst:
