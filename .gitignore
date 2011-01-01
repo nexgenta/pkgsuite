@@ -1,7 +1,9 @@
 /*.deb
+/*.pkg
 /dpkg-stage-*
 /dpkg-build-*
 /dpkg-control
+/dpkg-pkgroot
 /control.tar.gz
 /data.tar.gz
 /debian-binary

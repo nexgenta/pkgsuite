@@ -8,10 +8,11 @@ DPKG_VERSION = 1.14.30
 DPKG_REVISION = 3
 DPKG_BINARY = dpkg dpkg-deb dpkg-query dpkg-split dpkg-trigger dselect
 DPKG_DEB = dpkg_$(DPKG_VERSION)-$(DPKG_REVISION)_darwin-universal.deb
+DPKG_PKG = dpkg_$(DPKG_VERSION)-$(DPKG_REVISION)_darwin-universal.pkg
 
 dpkg_var=$(prefix)/var/dpkg
 
-all: $(DPKG_DEB)
+all: $(DPKG_PKG)
 
 clean: dpkg-clean
 
@@ -47,6 +48,19 @@ export dpkg_conffiles
 
 dpkg/configure: dpkg/configure.ac
 	cd dpkg && autoreconf --install --force -I m4
+
+$(DPKG_PKG): $(DPKG_DEB)
+	sudo rm -rf dpkg-pkgroot
+	mkdir dpkg-pkgroot
+	cp $(DPKG_DEB) dpkg-stage-universal$(prefix)/bin/* dpkg-pkgroot/
+	sudo chown -R root:wheel dpkg-pkgroot
+	rm -f dpkg-scripts/postupgrade
+	cp dpkg-scripts/postinstall dpkg-scripts/postupgrade
+	packagemaker \
+		--doc dpkg.pmdoc \
+		--out $(DPKG_PKG) \
+		--target 10.5 \
+		--verbose
 
 $(DPKG_DEB): dpkg-stage-universal$(prefix)/bin/dpkg
 	echo "2.0" > debian-binary
