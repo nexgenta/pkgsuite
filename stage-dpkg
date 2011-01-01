@@ -1,0 +1,52 @@
+#! /bin/sh
+
+### stage-dpkg DEVTOOLS-PATH CPU [PREFIX]
+
+gccver="4.0"
+sdkname="MacOSX10.5.sdk"
+default_prefix="/usr/local"
+
+devtools="$1"
+cpu="$2"
+prefix="$3"
+
+if test x"$cpu" = x"" ; then
+   echo "Usage: $0 DEVTOOLS-PATH CPU" >&2
+   exit 1
+fi
+
+test x"$prefix" = x"" && prefix="$default_prefix"
+
+gccbin="$devtools/usr/bin"
+sdk="$devtools/SDKs/$sdkname"
+SDKROOT="$sdk"
+export SDKROOT
+
+CC="$gccbin/gcc-${gccver} -isysroot $sdk -arch $cpu"
+export CC
+
+CXX="$gccbin/g++-${gccver} -isysroot $sdk -arch $cpu"
+export CXX
+
+CPP="$gccbin/cpp-${gccver} -isysroot $sdk -arch $cpu"
+export CPP
+
+rm -rf dpkg-build-$cpu
+rm -rf dpkg-stage-$cpu
+
+mkdir dpkg-build-$cpu
+mkdir dpkg-stage-$cpu
+
+staging="`pwd`/dpkg-stage-$cpu"
+
+PATH="$gccbin:$PATH"
+export PATH
+
+unset DEB_HOST_ARCH DEB_HOST_ARCH_CPU DEB_HOST_GNU_CPU DEB_HOST_GNU_TYPE
+
+set -e
+set -x
+cd dpkg-build-$cpu
+../dpkg/configure --prefix=$prefix --program-prefix= --program-suffix= --disable-nls $cpu-darwin
+make
+sudo make install DESTDIR="$staging"

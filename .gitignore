@@ -1,0 +1,7 @@
+/*.deb
+/dpkg-stage-*
+/dpkg-build-*
+/control.tar.gz
+/data.tar.gz
+/debian-package
+

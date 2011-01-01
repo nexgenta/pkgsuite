@@ -1,0 +1,3 @@
+[submodule "dpkg"]
+	path = dpkg
+	url = git://github.com/nexgenta/dpkg.git
