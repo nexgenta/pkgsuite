@@ -1,0 +1,36 @@
+Package Suite
+
+
+This is a port of the Debian Packaging System (Dpkg), along with associated
+tools and front-end applications, to platforms other than Linux.
+
+The initial target platform is Mac OS X. Other platforms may follow later.
+
+This repository contains only build logic and resources. The actual sources are
+contained within submodules. The logic is far from pretty -- building from
+source yourself is probably not recommended if you can help it (but should
+be straightforward enough if you have the Developer Tools installed and know
+your way around makefiles.
+
+The build logic for Mac OS X is contained within mk/Darwin.mk. By default it
+will build dpkg for x86, x86_64 and ppc architectures, use 'lipo' to generate
+fat binaries, and then construct a .deb package for dpkg itself. Once the
+.deb has been built, packagemaker is invoked to generate a native Mac OS X
+package.
+
+The Mac OS X package installs a copy of dpkg's executables, along with the dpkg
+.deb package, to /usr/local/var/dpkg/bootstrap. The postinstall script executed
+by Installer.app when the package is installed ensures the files and
+directories that dpkg needs to work exist, and invokes the bootstrap copy to
+install dpkg itself. The intention is that dpkg can be upgraded via apt-get
+(or dpkg alone) if needed, and also that re-installation of the Mac OS X
+package won't interfere with that.
+
+The scripts assume by default (for now) that the Mac OS X developer tools are
+installed in /Local/Developer. Set the DEVTOOLS variable to the path that
+you installed them while invoking 'make'. For example:
+
+make DEVTOOLS=/Xcode4
+
+You can also set the 'prefix' variable to build everything targeted at a prefix
+other than /usr/local.
