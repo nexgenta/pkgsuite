@@ -1,0 +1,93 @@
+{\rtf1\ansi\ansicpg65001\cocoartf1038\cocoasubrtf350
+{\fonttbl\f0\fnil\fcharset0 LucidaGrande;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11200\viewh6720\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf0 Debian Packaging System (dpkg & APT) for Mac OS X 10.5 Leopard\
+
+\fs24 \
+This package installs the Debian Packaging System, consisting of the \'93
+\f1 dpkg
+\f0 \'94 and \'93
+\f1 apt
+\f0 \'94 utilities, onto your system. It is intended primarily for people who are familiar with dpkg and apt \'97 this is not an alternative to the Mac App Store or Bodega.\
+\
+Files will be installed within 
+\f1 /usr/local
+\f0 . You will need to ensure that 
+\f1 /usr/local/bin
+\f0  is in your 
+\f1 PATH
+\f0 .\
+\
+By default, the only package repository enabled in 
+\f1 /usr/local/etc/sources.list.d
+\f0  is the one which contains 
+\f1 dpkg
+\f0  and 
+\f1 apt
+\f0  themselves, allowing you to get updates as they're made available. You can add additional repositories by creating 
+\f1 *.list
+\f0  files in this directory.\
+\
+In future, other packages may install repository settings here for you (possibly bundling a copy of this package, possibly not).\
+\
+
+\b A note regarding Universal Binaries:
+\b0 \
+\
+These versions of dpkg and apt have been built as tri-architecture Universal Binaries (32-bit PowerPC, 32-bit Intel, 64-bit Intel), and have been modified to support special \'93universal\'94-architecture packages (that is, packages which target Mac OS X specifically, but work on all three architectures \'97 this is distinct from Debian packages with an architecture set to \'93all\'94, which means that they don't contain any architecture-specific binaries at all).\
+\
+If you only ever use repositories which support your architecture specifically or contain 
+\f1 darwin-universal
+\f0  packages, everything should work just fine. However, if for some reason you need to use a repository which is of a different architecture to the default for your system, you will need to use the arch(1) command, e.g.:\
+\
+
+\f1 $ sudo arch -i386 apt-get update\
+
+\f0 \
+Alternatively, you can set a configuration option in 
+\f1 /usr/local/etc/apt/apt.conf
+\f0 :\
+\
+
+\f1 APT::Architecture "darwin-i386";\
+
+\f0 \
+(The three Debian architecture strings are \'93
+\f1 darwin-i386
+\f0 \'94, \'93
+\f1 darwin-ppc
+\f0 \'94, and \'93
+\f1 darwin-amd64
+\f0 \'94).\
+\
+Suffice to say, doing this will probably cause you problems later on down the line if you're not careful \'97 unfortunately there's no easy way at present to tell 
+\f1 dpkg
+\f0  and 
+\f1 apt
+\f0  that your system is capable of supporting multiple architectures, and which is preferred, although this may appear in a future version.\
+\
+
+\b A note about how this package is constructed:
+\b0 \
+\
+This package itself actually installs files to 
+\f1 /usr/local/var/dpkg/bootstrap
+\f0 , and then asks the \'93bootstrap\'94 version of 
+\f1 dpkg
+\f0  it installs there to install the bundled Debian packages for 
+\f1 dpkg
+\f0  and 
+\f1 apt
+\f0  proper: this ensures there are no conflicts between the Mac OS X packaging system and 
+\f1 dpkg
+\f0  when files are updated later. One side-effect of this is if you try to install an earlier version of the Mac package than the one you already have installed, you may find that installation fails (although Mac OS X\'92s Installer shouldn't let things get this far) \'97 this is because the post-installation script which installs 
+\f1 dpkg
+\f0  will abort if you attempt to downgrade dpkg. If you really need to downgrade, find the old 
+\f1 .deb
+\f0  files and use 
+\f1 'sudo dpkg --force-downgrade <path>'
+\f0  instead.\
+}

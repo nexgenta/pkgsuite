@@ -1,0 +1,21 @@
+## Repository for Fink.
+##
+## This is commented out by default, so you'll need to explicitly enable
+## it if you want it. Consider it highly experimental -- using this
+## version of apt-get/dpkg with Fink's repositories won't be supported
+## by anybody.
+##
+## Fink doesn't provide packages for darwin-amd64, so if you're running
+## on a 64-bit machine and you want to use these repositories, you'll
+## need to force apt-get into running in darwin-i386 mode:
+##
+## sudo arch -i386 apt-get update
+## sudo arch -i386 apt-get install <package>
+##
+## If you're feeling particularly brave and don't have any need to
+## install darwin-amd64 packages, you could override apt's architecture
+## via the APT::Architecture configuration option. YMMV.
+
+# deb http://bindist.finkmirrors.net/bindist 10.5/release main
+# deb http://bindist.finkmirrors.net/bindist 10.5/current main
+

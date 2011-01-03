@@ -1,0 +1,6 @@
+## Default package repository for pkgsuite -- this will allow you to
+## update dpkg and apt themselves.
+
+deb http://pkg.nexgenta.com pkgsuite main
+
+

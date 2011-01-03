@@ -5,13 +5,18 @@ prefix ?= /usr/local
 ARCHS = x86_64 i486 ppc
 DEBARCHS = darwin-amd64 darwin-i386 darwin-powerpc
 
+### Native package version information
+
+PKG_VERSION = 1.14.30
+PKG_REVISION = nx11
+PKG_NAME = dpkg+apt_$(PKG_VERSION)-$(PKG_REVISION)_darwin-universal.pkg
+
 ### dpkg version information
 
 DPKG_VERSION = 1.14.30
 DPKG_REVISION = nx3
 DPKG_BINARY = dpkg dpkg-deb dpkg-query dpkg-split dpkg-trigger dselect
 DPKG_DEB = dpkg_$(DPKG_VERSION)-$(DPKG_REVISION)_darwin-universal.deb
-DPKG_PKG = dpkg_$(DPKG_VERSION)-$(DPKG_REVISION)_darwin-universal.pkg
 
 define dpkg_control
 Package: dpkg
@@ -46,7 +51,7 @@ export dpkg_conffiles
 ### apt version information
 
 APT_VERSION = 0.7.20.2
-APT_REVISION = nx7
+APT_REVISION = nx8
 APT_BINARY = bin/apt-cache bin/apt-cdrom bin/apt-config bin/apt-extracttemplates bin/apt-get bin/apt-sortpkgs lib/apt/methods/cdrom lib/apt/methods/copy lib/apt/methods/file lib/apt/methods/ftp lib/apt/methods/gpgv lib/apt/methods/gzip lib/apt/methods/http lib/apt/methods/https lib/apt/methods/rred lib/apt/methods/rsh
 APT_DEB = apt_$(APT_VERSION)-$(APT_REVISION)_darwin-universal.deb
 
@@ -78,6 +83,8 @@ export apt_control
 ## '
 
 define apt_conffiles
+$(prefix)/etc/apt/sources.list.d/pkgsuite.list
+$(prefix)/etc/apt/sources.list.d/fink.list
 endef
 
 export apt_conffiles
@@ -87,18 +94,19 @@ export apt_conffiles
 dpkg_var=$(prefix)/var/dpkg
 devbin=$(DEVTOOLS)/usr/bin
 
-all: $(DPKG_PKG)
+all: $(PKG_NAME)
 
 clean: dpkg-clean apt-clean
+	rm -f $(PKG_NAME)
 
 ######## DPKG
 
 dpkg/configure: dpkg/configure.ac
 	cd dpkg && PATH=$(devbin):$$PATH $(devbin)/autoreconf --install --force -I m4
 
-dpkg-pkg: $(DPKG_PKG)
+dpkg-pkg: $(PKG_NAME)
 
-$(DPKG_PKG): $(DPKG_DEB) $(APT_DEB)
+$(PKG_NAME): $(DPKG_DEB) $(APT_DEB)
 	sudo rm -rf dpkg-pkgroot
 	mkdir dpkg-pkgroot
 	cp $(DPKG_DEB) $(APT_DEB) dpkg-stage-universal$(prefix)/bin/* dpkg-pkgroot/
@@ -107,7 +115,7 @@ $(DPKG_PKG): $(DPKG_DEB) $(APT_DEB)
 	cp dpkg-scripts/postinstall dpkg-scripts/postupgrade
 	$(devbin)/packagemaker \
 		--doc dpkg.pmdoc \
-		--out $(DPKG_PKG) \
+		--out $(PKG_NAME) \
 		--target 10.5 \
 		--verbose
 

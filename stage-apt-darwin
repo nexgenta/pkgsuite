@@ -72,5 +72,5 @@ for i in apt-cache apt-cdrom apt-config apt-extracttemplates apt-get apt-key apt
 done
 cp -a apt-build-$cpu/bin/methods/* apt-stage-$cpu/$prefix/lib/apt/methods/
 cp -a apt-build-$cpu/scripts/dselect/* apt-stage-$cpu/$prefix/lib/dpkg/methods/apt
-
+cp sources.list.d/* apt-stage-$cpu/$prefix/etc/apt/sources.list.d/
 sudo chown -R root:wheel apt-stage-$cpu
