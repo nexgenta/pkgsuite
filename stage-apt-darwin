@@ -1,0 +1,76 @@
+#! /bin/sh
+
+### stage-apt-darwin DEVTOOLS-PATH CPU [PREFIX]
+
+gccver="4.0"
+sdkname="MacOSX10.5.sdk"
+default_prefix="/usr/local"
+
+devtools="$1"
+cpu="$2"
+prefix="$3"
+
+if test x"$cpu" = x"" ; then
+   echo "Usage: $0 DEVTOOLS-PATH CPU" >&2
+   exit 1
+fi
+
+test x"$prefix" = x"" && prefix="$default_prefix"
+
+gccbin="$devtools/usr/bin"
+sdk="$devtools/SDKs/$sdkname"
+SDKROOT="$sdk"
+export SDKROOT
+
+CC="$gccbin/gcc-${gccver} -isysroot $sdk -arch $cpu"
+export CC
+
+CXX="$gccbin/g++-${gccver} -isysroot $sdk -arch $cpu"
+export CXX
+
+CPP="$gccbin/cpp-${gccver} -isysroot $sdk -arch $cpu"
+export CPP
+
+rm -rf apt-build-$cpu
+sudo rm -rf apt-stage-$cpu
+
+mkdir apt-build-$cpu
+mkdir apt-stage-$cpu
+
+staging="`pwd`/dpkg-stage-$cpu"
+
+PATH="$gccbin:`pwd`/dpkg-stage-universal/$prefix/bin:$PATH"
+export PATH
+
+unset DEB_HOST_ARCH DEB_HOST_ARCH_CPU DEB_HOST_GNU_CPU DEB_HOST_GNU_TYPE
+
+set -e
+set -x
+mkdir -p apt/build/doc/doxygen
+cd apt-build-$cpu
+../apt/configure --prefix=$prefix --program-prefix= --program-suffix= --disable-nls $cpu-darwin
+make
+cd ..
+mkdir -p apt-stage-$cpu/$prefix/bin
+mkdir -p apt-stage-$cpu/$prefix/lib
+mkdir -p apt-stage-$cpu/$prefix/lib/apt/methods
+mkdir -p apt-stage-$cpu/$prefix/lib/dpkg/methods/apt
+mkdir -p apt-stage-$cpu/$prefix/etc/apt/apt.conf.d
+mkdir -p apt-stage-$cpu/$prefix/etc/apt/preferences.d
+mkdir -p apt-stage-$cpu/$prefix/etc/apt/sources.list.d
+mkdir -p apt-stage-$cpu/$prefix/var/cache/apt
+mkdir -p apt-stage-$cpu/$prefix/var/cache/apt/archives/partial
+mkdir -p apt-stage-$cpu/$prefix/var/lib/apt/lists/partial
+mkdir -p apt-stage-$cpu/$prefix/var/lib/mirrors/lists/partial
+mkdir -p apt-stage-$cpu/$prefix/var/log/apt
+mkdir -p apt-stage-$cpu/$prefix/share/doc/apt
+mkdir -p apt-stage-$cpu/$prefix/share/locale
+mkdir -p apt-stage-$cpu/$prefix/share/man/man8
+mkdir -p apt-stage-$cpu/$prefix/share/man/man5
+for i in apt-cache apt-cdrom apt-config apt-extracttemplates apt-get apt-key apt-mark apt-sortpkgs ; do
+	cp apt-build-$cpu/bin/$i apt-stage-$cpu/$prefix/bin/
+done
+cp -a apt-build-$cpu/bin/methods/* apt-stage-$cpu/$prefix/lib/apt/methods/
+cp -a apt-build-$cpu/scripts/dselect/* apt-stage-$cpu/$prefix/lib/dpkg/methods/apt
+
+sudo chown -R root:wheel apt-stage-$cpu

@@ -32,7 +32,7 @@ CPP="$gccbin/cpp-${gccver} -isysroot $sdk -arch $cpu"
 export CPP
 
 rm -rf dpkg-build-$cpu
-rm -rf dpkg-stage-$cpu
+sudo rm -rf dpkg-stage-$cpu
 
 mkdir dpkg-build-$cpu
 mkdir dpkg-stage-$cpu

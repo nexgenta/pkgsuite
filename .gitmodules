@@ -1,3 +1,6 @@
 [submodule "dpkg"]
 	path = dpkg
 	url = git://github.com/nexgenta/dpkg.git
+[submodule "apt"]
+	path = apt
+	url = git://github.com/nexgenta/apt.git

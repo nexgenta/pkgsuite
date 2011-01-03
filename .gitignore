@@ -4,6 +4,10 @@
 /dpkg-build-*
 /dpkg-control
 /dpkg-pkgroot
+/apt-stage-*
+/apt-build-*
+/apt-control
+/apt-pkgroot
 /control.tar.gz
 /data.tar.gz
 /debian-binary

@@ -1,24 +1,21 @@
+### Configurable
+
 DEVTOOLS ?= /Local/Developer
 prefix ?= /usr/local
-
 ARCHS = x86_64 i486 ppc
 DEBARCHS = darwin-amd64 darwin-i386 darwin-powerpc
 
+### dpkg version information
+
 DPKG_VERSION = 1.14.30
-DPKG_REVISION = 3
+DPKG_REVISION = nx3
 DPKG_BINARY = dpkg dpkg-deb dpkg-query dpkg-split dpkg-trigger dselect
 DPKG_DEB = dpkg_$(DPKG_VERSION)-$(DPKG_REVISION)_darwin-universal.deb
 DPKG_PKG = dpkg_$(DPKG_VERSION)-$(DPKG_REVISION)_darwin-universal.pkg
 
-dpkg_var=$(prefix)/var/dpkg
-
-all: $(DPKG_PKG)
-
-clean: dpkg-clean
-
 define dpkg_control
 Package: dpkg
-Version: $(DPKG_VERSION)
+Version: $(DPKG_VERSION)-$(DPKG_REVISION)
 Architecture: darwin-universal
 Essential: yes
 Maintainer: Mo McRoberts <mo.mcroberts@nexgenta.com>
@@ -46,21 +43,75 @@ endef
 
 export dpkg_conffiles
 
-dpkg/configure: dpkg/configure.ac
-	cd dpkg && autoreconf --install --force -I m4
+### apt version information
 
-$(DPKG_PKG): $(DPKG_DEB)
+APT_VERSION = 0.7.20.2
+APT_REVISION = nx7
+APT_BINARY = bin/apt-cache bin/apt-cdrom bin/apt-config bin/apt-extracttemplates bin/apt-get bin/apt-sortpkgs lib/apt/methods/cdrom lib/apt/methods/copy lib/apt/methods/file lib/apt/methods/ftp lib/apt/methods/gpgv lib/apt/methods/gzip lib/apt/methods/http lib/apt/methods/https lib/apt/methods/rred lib/apt/methods/rsh
+APT_DEB = apt_$(APT_VERSION)-$(APT_REVISION)_darwin-universal.deb
+
+define apt_control
+Package: apt
+Version: $(APT_VERSION)-$(APT_REVISION)
+Architecture: darwin-universal
+Essential: yes
+Maintainer: Mo McRoberts <mo.mcroberts@nexgenta.com>
+Original-Maintainer: APT Development Team <deity@lists.debian.org>
+Depends: dpkg
+Provides: dselect
+Section: admin
+Priority: important
+Origin: Nexgenta
+Homepage: https://github.com/nexgenta/apt
+Bugs: https://github.com/nexgenta/apt/issues
+Description: Advanced front-end for dpkg
+ This is Debian's next generation front-end for the dpkg package manager.
+ It provides the apt-get utility and APT dselect method that provides a
+ simpler, safer way to install and upgrade packages.
+ .
+ APT features complete installation ordering, multiple source capability
+ and several other unique features, see the Users Guide in apt-doc.
+endef
+
+export apt_control
+
+## '
+
+define apt_conffiles
+endef
+
+export apt_conffiles
+
+### No user-serviceable parts beyond this point
+
+dpkg_var=$(prefix)/var/dpkg
+devbin=$(DEVTOOLS)/usr/bin
+
+all: $(DPKG_PKG)
+
+clean: dpkg-clean apt-clean
+
+######## DPKG
+
+dpkg/configure: dpkg/configure.ac
+	cd dpkg && PATH=$(devbin):$$PATH $(devbin)/autoreconf --install --force -I m4
+
+dpkg-pkg: $(DPKG_PKG)
+
+$(DPKG_PKG): $(DPKG_DEB) $(APT_DEB)
 	sudo rm -rf dpkg-pkgroot
 	mkdir dpkg-pkgroot
-	cp $(DPKG_DEB) dpkg-stage-universal$(prefix)/bin/* dpkg-pkgroot/
+	cp $(DPKG_DEB) $(APT_DEB) dpkg-stage-universal$(prefix)/bin/* dpkg-pkgroot/
 	sudo chown -R root:wheel dpkg-pkgroot
 	rm -f dpkg-scripts/postupgrade
 	cp dpkg-scripts/postinstall dpkg-scripts/postupgrade
-	packagemaker \
+	$(devbin)/packagemaker \
 		--doc dpkg.pmdoc \
 		--out $(DPKG_PKG) \
 		--target 10.5 \
 		--verbose
+
+dpkg-deb: $(DPKG_DEB)
 
 $(DPKG_DEB): dpkg-stage-universal$(prefix)/bin/dpkg
 	echo "2.0" > debian-binary
@@ -73,7 +124,7 @@ $(DPKG_DEB): dpkg-stage-universal$(prefix)/bin/dpkg
 	( cd dpkg-control && tar cvf ../control.tar.gz . )
 	$(DEVTOOLS)/usr/bin/ar rc $(DPKG_DEB) debian-binary control.tar.gz data.tar.gz
 
-dpkg-stage-universal$(prefix)/bin/dpkg: dpkg-archs
+dpkg-stage-universal$(prefix)/bin/dpkg: $(foreach arch,$(ARCHS),dpkg-stage-$(arch)$(prefix)/bin/dpkg)
 	rm -rf dpkg-stage-universal
 	mkdir dpkg-stage-universal
 	( cd dpkg-stage-x86_64 && sudo tar cf - . ) | ( cd dpkg-stage-universal && tar xf - )
@@ -90,17 +141,55 @@ dpkg-clean:
 dpkg-archs: $(foreach arch,$(ARCHS),dpkg-stage-$(arch)$(prefix)/bin/dpkg)
 
 dpkg-stage-x86_64$(prefix)/bin/dpkg: dpkg/configure
-	./stage-dpkg $(DEVTOOLS) x86_64 $(prefix)
+	./stage-dpkg-darwin $(DEVTOOLS) x86_64 $(prefix)
 
 dpkg-stage-i486$(prefix)/bin/dpkg: dpkg/configure
-	./stage-dpkg $(DEVTOOLS) i486 $(prefix)
+	./stage-dpkg-darwin $(DEVTOOLS) i486 $(prefix)
 
 dpkg-stage-ppc$(prefix)/bin/dpkg: dpkg/configure
-	./stage-dpkg $(DEVTOOLS) ppc $(prefix)
+	./stage-dpkg-darwin $(DEVTOOLS) ppc $(prefix)
 
-preinst:
-	sudo mkdir -p $(dpkg_var) $(dpkg_var)/alternatives $(dpkg_var)/info $(dpkg_var)/methods $(dpkg_var)/parts $(dpkg_var)/triggers $(dpkg_var)/updates
-	sudo touch $(dpkg_var)/available $(dpkg_var)/status
+######## APT
 
-obliterate:
-	sudo rm -rf $(dpkg_var)
+apt-deb: $(APT_DEB)
+
+$(APT_DEB): apt-stage-universal$(prefix)/bin/apt-get
+	echo "2.0" > debian-binary
+	( cd apt-stage-universal && sudo tar cvf ../data.tar.gz . )
+	rm -rf apt-control
+	mkdir apt-control
+	echo "$$apt_control" > apt-control/control
+	echo "$$apt_conffiles" > apt-control/conffiles
+	find apt-stage-universal -type f -exec md5 -r \{} \; | sed -e 's! apt-stage-universal/! !' > apt-control/md5sums
+	( cd apt-control && tar cvf ../control.tar.gz . )
+	$(DEVTOOLS)/usr/bin/ar rc $(APT_DEB) debian-binary control.tar.gz data.tar.gz
+
+apt/configure: apt/configure.in
+	cd apt && PATH=$(devbin):$$PATH $(devbin)/autoconf --force -I buildlib
+
+apt-stage-universal$(prefix)/bin/apt-get: $(foreach arch,$(ARCHS),apt-stage-$(arch)$(prefix)/bin/apt-get)
+	sudo rm -rf apt-stage-universal
+	mkdir apt-stage-universal
+	( cd apt-stage-x86_64 && sudo tar cf - . ) | ( cd apt-stage-universal && tar xf - )
+	cd apt-stage-universal$(prefix)/bin && sudo rm -f $(APT_BINARY)
+	for i in $(APT_BINARY) ; do \
+		sudo lipo $(foreach arch,$(ARCHS),apt-stage-$(arch)$(prefix)/$$i) -create -output apt-stage-universal$(prefix)/$$i ; \
+	done
+
+apt-clean:
+	rm -rf $(foreach arch,$(ARCHS),apt-build-$(arch))
+	sudo rm -rf $(foreach arch,$(ARCHS),apt-stage-$(arch)) apt-stage-universal apt-control
+	rm -f control.tar.gz data.tar.gz debian-binary $(APT_DEB)
+
+apt-archs: $(foreach arch,$(ARCHS),apt-stage-$(arch)$(prefix)/bin/apt-get)
+
+apt-stage-x86_64$(prefix)/bin/apt-get: apt/configure dpkg-stage-universal$(prefix)/bin/dpkg
+	./stage-apt-darwin $(DEVTOOLS) x86_64 $(prefix)
+
+apt-stage-i486$(prefix)/bin/apt-get: apt/configure dpkg-stage-universal$(prefix)/bin/dpkg
+	./stage-apt-darwin $(DEVTOOLS) i486 $(prefix)
+
+apt-stage-ppc$(prefix)/bin/apt-get: apt/configure dpkg-stage-universal$(prefix)/bin/dpkg
+	./stage-apt-darwin $(DEVTOOLS) ppc $(prefix)
+
+.PHONY: apt-deb apt-archs apt-clean dpkg-deb dpkg-archs dpkg-clean
