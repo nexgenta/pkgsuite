@@ -50,3 +50,13 @@ cd dpkg-build-$cpu
 ../dpkg/configure --prefix=$prefix --program-prefix= --program-suffix= --disable-nls $cpu-darwin
 make
 sudo make install DESTDIR="$staging"
+sudo mkdir ${staging}${prefix}/etc/dpkg/dpkg.cfg.d
+cat > dpkg.cfg <<EOF
+## Sample configuration file for dpkg(1)
+
+# Uncomment the following to force installation of packages whose architectures
+# don't match
+#force-architecture
+
+EOF
+sudo mv dpkg.cfg ${staging}${prefix}/etc/dpkg/

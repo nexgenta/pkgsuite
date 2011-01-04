@@ -10,5 +10,5 @@ mkdir -p ${dpkg_var} ${dpkg_var}/alternatives ${dpkg_var}/info ${dpkg_var}/metho
 touch ${dpkg_var}/available
 touch ${dpkg_var}/status
 
-dpkg --refuse-downgrade -i ${dpkg_var}/bootstrap/dpkg_1.14.30-nx3_darwin-universal.deb
-dpkg --refuse-downgrade -i ${dpkg_var}/bootstrap/apt_0.7.20.2-nx8_darwin-universal.deb
+dpkg --refuse-downgrade -i ${dpkg_var}/bootstrap/dpkg_1.14.30-nx4_darwin-universal.deb
+dpkg --refuse-downgrade -i ${dpkg_var}/bootstrap/apt_0.7.20.2-nx9_darwin-universal.deb

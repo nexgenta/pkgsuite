@@ -8,13 +8,13 @@ DEBARCHS = darwin-amd64 darwin-i386 darwin-powerpc
 ### Native package version information
 
 PKG_VERSION = 1.14.30
-PKG_REVISION = nx11
+PKG_REVISION = nx12
 PKG_NAME = dpkg+apt_$(PKG_VERSION)-$(PKG_REVISION)_darwin-universal.pkg
 
 ### dpkg version information
 
 DPKG_VERSION = 1.14.30
-DPKG_REVISION = nx3
+DPKG_REVISION = nx4
 DPKG_BINARY = dpkg dpkg-deb dpkg-query dpkg-split dpkg-trigger dselect
 DPKG_DEB = dpkg_$(DPKG_VERSION)-$(DPKG_REVISION)_darwin-universal.deb
 
@@ -51,7 +51,7 @@ export dpkg_conffiles
 ### apt version information
 
 APT_VERSION = 0.7.20.2
-APT_REVISION = nx8
+APT_REVISION = nx9
 APT_BINARY = bin/apt-cache bin/apt-cdrom bin/apt-config bin/apt-extracttemplates bin/apt-get bin/apt-sortpkgs lib/apt/methods/cdrom lib/apt/methods/copy lib/apt/methods/file lib/apt/methods/ftp lib/apt/methods/gpgv lib/apt/methods/gzip lib/apt/methods/http lib/apt/methods/https lib/apt/methods/rred lib/apt/methods/rsh
 APT_DEB = apt_$(APT_VERSION)-$(APT_REVISION)_darwin-universal.deb
 
@@ -123,6 +123,7 @@ dpkg-deb: $(DPKG_DEB)
 
 $(DPKG_DEB): dpkg-stage-universal$(prefix)/bin/dpkg
 	echo "2.0" > debian-binary
+	sudo chown -R root:wheel dpkg-stage-universal
 	( cd dpkg-stage-universal && sudo tar cvf ../data.tar.gz . )
 	rm -rf dpkg-control
 	mkdir dpkg-control
@@ -163,6 +164,7 @@ apt-deb: $(APT_DEB)
 
 $(APT_DEB): apt-stage-universal$(prefix)/bin/apt-get
 	echo "2.0" > debian-binary
+	sudo chown -R root:wheel apt-stage-universal
 	( cd apt-stage-universal && sudo tar cvf ../data.tar.gz . )
 	rm -rf apt-control
 	mkdir apt-control
