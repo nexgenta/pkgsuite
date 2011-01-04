@@ -12,10 +12,18 @@
 ## sudo arch -i386 apt-get update
 ## sudo arch -i386 apt-get install <package>
 ##
+## For this to work, you'll also need to tell dpkg to ignore architecture
+## mismatches, by putting:
+##
+## force-architecture
+##
+## ...in /usr/local/etc/dpkg/dpkg.cfg
+##
 ## If you're feeling particularly brave and don't have any need to
 ## install darwin-amd64 packages, you could override apt's architecture
 ## via the APT::Architecture configuration option. YMMV.
 
+# deb http://pkg.nexgenta.com fink-support main
 # deb http://bindist.finkmirrors.net/bindist 10.5/release main
 # deb http://bindist.finkmirrors.net/bindist 10.5/current main
 
