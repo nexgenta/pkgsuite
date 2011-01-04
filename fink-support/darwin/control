@@ -1,10 +1,10 @@
 Package: darwin
-Version: 9.0-nx1
+Version: 9.0-nx2
 Architecture: all
-Essential: yes
+Essential: no
 Maintainer: Mo McRoberts <mo.mcroberts@nexgenta.com>
 Section: admin
-Priority: optional
+Priority: important
 Origin: Nexgenta
 Description: Pseudo-package for Fink support
  This package provides the 'darwin' dependency so as to allow Fink packages to
